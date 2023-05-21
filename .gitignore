@@ -1,0 +1,6 @@
+build/
+dist/
+runnercana.spec
+.runnercana.stdout
+.runnercana.stderr
+passwd

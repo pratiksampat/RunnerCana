@@ -8,6 +8,7 @@ import argparse
 import time
 from datetime import datetime
 import subprocess
+import os
 
 # Provide your email credentials and the email details
 sender_email = ''
@@ -58,14 +59,40 @@ def main():
     args = parse_args()
     current_user = getpass.getuser()
 
+    stdout_file = open(".runnercana_stdout", 'w+')
+    stderr_file = open(".runnercana_stderr", 'w+')
+
     print("-----RUNNING PROGRAM-----")
     exec_start_clock = datetime.now().strftime('%H:%M:%S')
     exec_start_clock += " " + str(datetime.now().astimezone().tzinfo)
     start_time = time.time()
 
-    result = subprocess.run(args.program, shell=True)
+    result = subprocess.run(args.program, stdout=stdout_file, stderr=stderr_file, shell=True)
     end_time = round(time.time() - start_time, 5)
+
+    with open('.runnercana_stdout') as f:
+        stdout = f.readlines()
+
+    with open('.runnercana_stderr') as f:
+        stderr = f.readlines()
+
+    if (stderr == []):
+        stderr = 'None'
+    else:
+        stderr = ' '.join(stderr)
+
+    if (stdout == []):
+        stdout = 'None'
+    else:
+        stdout = ' '.join(stdout)
+
+    if (stdout != 'None'):
+        print(stdout)
+    if (stderr != 'None'):
+        print(stderr)
+
     print("-----------DONE----------")
+
     exec_finish_clock = datetime.now().strftime('%H:%M:%S')
     exec_finish_clock += " " + str(datetime.now().astimezone().tzinfo)
 
@@ -85,9 +112,20 @@ def main():
     print("\n" + run_body)
 
     body += run_body
-    body += "\nYour friendly neighbourhood,\nArcanaBot \u2764\uFE0F"
+    body += "Stdout: \n" + stdout
+    body += "stderr:" + stderr
+
+    body += "\n\nYour friendly neighbourhood,\nArcanaBot \u2764\uFE0F"
 
     send_email(sender_email, sender_password, args.send_to, subject, body)
+
+    stdout_file.close()
+    stderr_file.close()
+
+    if os.path.exists(".runnercana_stdout"):
+        os.remove(".runnercana_stdout")
+    if os.path.exists(".runnercana_stderr"):
+        os.remove(".runnercana_stderr")
 
 if __name__ == '__main__':
     main()
